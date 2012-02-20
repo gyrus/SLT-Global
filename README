@@ -1,0 +1,5 @@
+This is a WordPress plugin that includes code that I like to run on every WordPress site I deploy.
+
+I try to keep it to essential security measures and WP enhancements, and very commonly used helper functions.
+
+Usually I install it in the `mu-plugins` directory.
