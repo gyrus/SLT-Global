@@ -1,24 +1,26 @@
 <?php
 
-/*
-Plugin Name: SLT Global
-Plugin URI: http://sltaylor.co.uk/
-Description: Steve Taylor's global WordPress modifications and functions library
-Version: 1.0
-Author: Steve Taylor
-Author URI: http://sltaylor.co.uk/
-License: GPL2
-*/
+/**
+ * Plugin Name: SLT Global
+ * Plugin URI: http://sltaylor.co.uk/
+ * Description: Steve Taylor's global WordPress modifications and functions library
+ * Version: 1.0
+ * Author: Steve Taylor
+ * Author URI: http://sltaylor.co.uk/
+ * License: GPL2
+ *
+ * @package SLT_Global
+ *
+ */
 
 
-/* Constants
-*****************************************************************************/
+// Disable theme and plugin editing through the admin
 define( 'DISALLOW_FILE_EDIT', true );
 
 
-/* Admin
+/* Admin-only stuff
 *****************************************************************************/
-if ( is_admin() ) {
+if ( is_admin() ) :
 
 // Disable WP upgrade notification for non-admins
 add_action( 'admin_init', 'slt_disable_upgrade_notification' );
@@ -50,7 +52,21 @@ function slt_nav_menus_columns_hidden( $result ) {
 	return $result;
 }
 
-// Output admin setting field
+/**
+ * Output an admin settings field
+ *
+ * @param string $name A name for the options field. If SLT_THEME_SHORTNAME is defined, this is used as a prefix. If the format 'option_group_name[option_name]' is used, the option 'option_name' will be stored as part of the single 'option_group_name' entry in the options table.
+ * @param string $label A label for the field
+ * @param string $type text | textarea | select | checkbox | file (requires Developer's Custom Fields plugin)
+ * @param array $options For populating selects etc. If $options['auto_populate'] is set to 'number_range', $options['start'], $options['end'] and $options['increment'] will be used to populate select options.
+ * @param string $note A note to output with the field
+ * @param mixed $default A default value
+ * @uses wp_kses()
+ * @uses esc_attr()
+ * @uses slt_cf_file_select_button()
+ * @uses selected()
+ * @uses checked()
+ */
 function slt_admin_setting_field( $name, $label, $type = 'text', $options = array(), $note = '', $default = '' ) {
 	if ( defined( 'SLT_THEME_SHORTNAME' ) && substr( $name, 0, strlen( SLT_THEME_SHORTNAME ) ) != SLT_THEME_SHORTNAME )
 		$name = SLT_THEME_SHORTNAME . '_' . $name;
@@ -121,8 +137,7 @@ function slt_admin_setting_field( $name, $label, $type = 'text', $options = arra
 	<?php
 }
 
-
-} // is_admin()?
+endif; // is_admin()
 
 
 /* Users
@@ -144,6 +159,9 @@ function slt_default_user_display_name( $user_id ) {
  * @param mixed $user Either a user's ID or a user object
  * @param bool $manual If true, a "manual" check is done that avoids using WP functions; use this if the code calling this function is hooked to something that may be called by WP_User, creating an infinite loop
  * @return string
+ * @uses $wpdb
+ * @uses maybe_unserialize()
+ * @uses WP_User
  */
 function slt_get_user_role( $user, $manual = false ) {
 	global $wpdb;
@@ -182,6 +200,9 @@ function slt_get_user_role( $user, $manual = false ) {
  *
  * @param integer $id The user's ID
  * @return object
+ * @uses get_userdata()
+ * @uses slt_get_all_user_meta()
+ * @uses maybe_unserialize()
  */
 function slt_get_user_with_meta( $id ) {
 	$user = get_userdata( $id );
@@ -201,6 +222,9 @@ function slt_get_user_with_meta( $id ) {
  * @param bool $array Return as an associative array, or leave as array of objects?
  * @param bool $skip_hook Skip the hook that lets other functions take over? Necessary for calling this from within a function hooked to 'slt_get_all_user_meta'!
  * @return array
+ * @uses $wpdb
+ * @uses apply_filters()
+ * @uses maybe_unserialize()
  */
 function slt_get_all_user_meta( $id, $array = true, $skip_hook = false ) {
 	// Allow hooks to take over?
@@ -250,7 +274,12 @@ function slt_global_body_classes( $classes ) {
 	return $classes;
 }
 
-// JS variables that need to be populated from WP settings or constants
+/**
+ * JS variables that need to be populated from WP settings or constants
+ *
+ * To use this, just add the names of options in the WP options table, or the names of constants, to the global $slt_js_settings array.
+ *
+ */
 add_action( 'init', function() { global $slt_js_settings; $slt_js_settings = array(); } );
 add_action( 'wp_head', 'slt_js_settings', 1 );
 function slt_js_settings() {
@@ -267,7 +296,12 @@ function slt_js_settings() {
 	}
 }
 
-// Run-early JavaScript
+/**
+ * 'Run-early' JavaScript
+ *
+ * To use this, just add lines of JS that need to run directly in the foot to the global $slt_run_early_js array.
+ *
+ */
 add_action( 'init', function() { global $slt_run_early_js; $slt_run_early_js = array(); } );
 add_action( 'wp_footer', 'slt_run_early_js', 0 );
 function slt_run_early_js() {
@@ -356,15 +390,14 @@ function slt_search_object_array( $needle_key, $needle_val, $haystack ) {
 /**
  * Search arrays in an array for a value, and return the key of the first matching array
  *
- * @param string $needle_key The key being searched for
- * @param string $needle_val The value being searched for
- * @param array $haystack An array of objects
+ * @param string $needle The value being searched for
+ * @param array $haystack An array of arrays
  * @return mixed False if no match found, otherwise the index of the object in the array that has the key / value combination
  */
 function slt_search_arrays_in_array( $needle, $haystack ) {
 	if ( is_array( $haystack ) ) {
 		foreach ( $haystack as $key => $value ) {
-			if ( is_array( $value ) && ( array_search( $needle, $value ) !== false || $value == $needle ) )
+			if ( ( is_array( $value ) && ( array_search( $needle, $value ) !== false ) || $value == $needle ) )
 				return $key;
 		}
 	}
