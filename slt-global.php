@@ -15,7 +15,8 @@
 
 
 // Disable theme and plugin editing through the admin
-define( 'DISALLOW_FILE_EDIT', true );
+if ( ! defined( 'DISALLOW_FILE_EDIT' ) )
+	define( 'DISALLOW_FILE_EDIT', true );
 
 
 /* Admin-only stuff
