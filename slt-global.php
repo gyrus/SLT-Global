@@ -392,13 +392,26 @@ function slt_search_object_array( $needle_key, $needle_val, $haystack ) {
  * Search arrays in an array for a value, and return the key of the first matching array
  *
  * @param string $needle The value being searched for
- * @param array $haystack An array of arrays
- * @return mixed False if no match found, otherwise the index of the object in the array that has the key / value combination
+ * @param array $haystack An array of objects
+ * @param boolean $case_sensitive If $needle is a string, whether to perform case-sensitive searching
+ * @return mixed False if no match found, otherwise the index of the element in the array that contains the value
  */
-function slt_search_arrays_in_array( $needle, $haystack ) {
+function slt_search_arrays_in_array( $needle, $haystack, $case_sensitive = true ) {
 	if ( is_array( $haystack ) ) {
 		foreach ( $haystack as $key => $value ) {
-			if ( ( is_array( $value ) && ( array_search( $needle, $value ) !== false ) || $value == $needle ) )
+			$match = false;
+			if ( is_array( $value ) ) {
+				if ( is_string( $needle ) && ! $case_sensitive )
+					$match = ( array_search( strtolower( $needle ), array_map( 'strtolower', $value ) ) !== false );
+				else
+					$match = ( array_search( $needle, $value ) !== false );
+			} else {
+				if ( is_string( $needle ) && ! $case_sensitive )
+					$match = ( strcasecmp( $value, $needle ) == 0 );
+				else
+					$match = ( $value == $needle );
+			}
+			if ( $match )
 				return $key;
 		}
 	}
